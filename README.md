@@ -1,1 +1,5 @@
-# livewire - crud
+# LARAVEL
+# LIVEWIRE
+# MARY UI
+# CRUD
+new
