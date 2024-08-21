@@ -18,8 +18,16 @@ Route::get('/logout', function () {
 // Protected routes here
 Route::middleware('auth')->group(function () {
     Volt::route('/', 'index');
-    Volt::route('/users', 'users.index');
-    Volt::route('/users/create', 'users.create');
-    Volt::route('/users/{user}/edit', 'users.edit');
-    // ... more
+
+    Route::group(['prefix' => 'users'], function () {
+        Volt::route('/', 'users.index');
+        Volt::route('/create', 'users.create');
+        Volt::route('/{user}/edit', 'users.edit');
+    });
+
+    Route::group(['prefix' => 'bills'], function () {
+        Volt::route('/', 'bills.index')->name('bills');
+        Volt::route('/create', 'bills.create');
+        Volt::route('/{bill}/edit', 'bills.edit');
+    });
 });

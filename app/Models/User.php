@@ -40,6 +40,11 @@ class User extends Authenticatable
         return $this->belongsToMany(Language::class);
     }
 
+    public function bills()
+    {
+        return $this->hasMany(Bill::class,'customer_id','id');
+    }
+
     /**
      * Get the attributes that should be cast.
      *

@@ -1,19 +1,19 @@
 <?php
 
-use App\Models\User;
+use App\Models\Bill;
 use Illuminate\Support\Collection;
 use Livewire\Volt\Component;
 use Mary\Traits\Toast;
 use Livewire\WithPagination;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
-use App\Models\Country;
+use App\Models\User;
 
 
 new class extends Component {
     use Toast, WithPagination;
 
-    public int $country_id = 0;
+    public int $customer_id = 0;
 
     public string $search = '';
 
@@ -32,36 +32,30 @@ new class extends Component {
     // Delete action
     public function delete($id): void
     {
-        $this->warning("Will delete #$id", 'It is fake.', position: 'toast-bottom');
+//        $this->warning("Will delete #$id", 'It is fake.', position: 'toast-bottom');
     }
 
     // Table headers
     public function headers(): array
     {
         return [
-            ['key' => 'avatar', 'label' => '', 'class' => 'w-1'],
             ['key' => 'id', 'label' => '#', 'class' => 'w-1'],
-            ['key' => 'name', 'label' => 'Name', 'class' => 'w-64'],
-            ['key' => 'country_name', 'label' => 'Country'],
-            ['key' => 'email', 'label' => 'E-mail', 'sortable' => false],
-
+            ['key' => 'customer_name', 'label' => 'Customer', 'class' => 'w-64'],
+            ['key' => 'customer_site', 'label' => 'Site', 'class' => 'w-64'],
+            ['key' => 'mukam', 'label' => 'Mukam', 'class' => 'w-64'],
+            ['key' => 'from_to_date', 'label' => 'Dates', 'sortable' => false],
+            ['key' => 'total', 'label' => 'Total', 'sortable' => false],
         ];
     }
 
-    /**
-     * For demo purpose, this is a static collection.
-     *
-     * On real projects you do it with Eloquent collections.
-     * Please, refer to maryUI docs to see the eloquent examples.
-     */
-    public function users(): LengthAwarePaginator
+    public function bills(): LengthAwarePaginator
     {
-        return User::query()
-            ->with(['country'])
-            ->withAggregate('country', 'name')
-            ->where('is_customer', true)
-            ->when($this->search, fn(Builder $q) => $q->where('name', 'like', "%$this->search%"))
-            ->when($this->country_id, fn(Builder $q) => $q->where('country_id', $this->country_id))
+        return Bill::query()
+//            ->with(['customer'])
+            ->withAggregate('customer', 'name')
+            ->withAggregate('customer', 'site')
+            ->when($this->search, fn(Builder $q) => $q->where('mukam', 'like', "%$this->search%"))
+            ->when($this->customer_id, fn(Builder $q) => $q->where('customer_id', $this->customer_id))
             ->orderBy(...array_values($this->sortBy))
             ->paginate(10);
         // ->get();
@@ -82,7 +76,7 @@ new class extends Component {
         if (!empty($this->search)) {
             $c++;
         }
-        if (!empty($this->country_id) && $this->country_id != 0) {
+        if (!empty($this->customer_id) && $this->customer_id != 0) {
             $c++;
         }
         return $c;
@@ -91,9 +85,9 @@ new class extends Component {
     public function with(): array
     {
         return [
-            'users' => $this->users(),
+            'bills' => $this->bills(),
             'headers' => $this->headers(),
-            'countries' => Country::all(),
+            'customers' => User::where('is_customer', true)->get(),
             'filterCount' => $this->filterCount()
         ];
     }
@@ -115,22 +109,22 @@ new class extends Component {
         <x-slot:actions>
             <x-button label="Filters" @click="$wire.drawer = true" badge="{{ $filterCount }}" responsive
                       icon="o-funnel"/>
-              <x-button label="Create" link="users/create" responsive icon="o-plus" class="btn-primary" />
+            <x-button label="Create" link="bills/create" responsive icon="o-plus" class="btn-primary"/>
 
         </x-slot:actions>
     </x-header>
 
     <!-- TABLE  -->
     <x-card>
-        <x-table :headers="$headers" :rows="$users" :sort-by="$sortBy" link="users/{id}/edit" with-pagination>
-            @scope('cell_avatar', $user)
-            <x-avatar image="{{ $user->avatar ?? '/empty-user.jpg' }}" class="!w-10"/>
+        <x-table :headers="$headers" :rows="$bills" :sort-by="$sortBy" link="bills/{id}/edit" striped with-pagination>
+            @scope('cell_from_to_date', $bill)
+            {{ $bill->date_start }} - {{ $bill->date_end }}
             @endscope
-            @scope('actions', $user)
+            @scope('actions', $bill)
             <div class="flex">
-                <x-button icon="o-pencil-square" link="users/{{ $user['id'] }}/edit"
+                <x-button icon="o-pencil-square" link="bills/{{ $bill['id'] }}/edit"
                           class="btn-ghost btn-sm text-white-500"/>
-                <x-button icon="o-trash" wire:click="delete({{ $user['id'] }})" wire:confirm="Are you sure?" spinner
+                <x-button icon="o-trash" wire:click="delete({{ $bill['id'] }})" wire:confirm="Are you sure?" spinner
                           class="btn-ghost btn-sm text-red-500"/>
             </div>
             @endscope
@@ -140,9 +134,9 @@ new class extends Component {
     <!-- FILTER DRAWER -->
     <x-drawer wire:model="drawer" title="Filters" right separator with-close-button class="lg:w-1/3">
         <div class="grid gap-5">
-            <x-input placeholder="Search..." wire:model.live.debounce="search" icon="o-magnifying-glass"
+            <x-input placeholder="Search By Mukam..." wire:model.live.debounce="search" icon="o-magnifying-glass"
                      @keydown.enter="$wire.drawer = false"/>
-            <x-select placeholder="Country" wire:model.live="country_id" :options="$countries" icon="o-flag"
+            <x-select placeholder="Customer" wire:model.live="customer_id" :options="$customers" icon="o-flag"
                       placeholder-value="0"/>
         </div>
 

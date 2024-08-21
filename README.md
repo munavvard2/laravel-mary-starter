@@ -1,4 +1,3 @@
-# LARAVEL
-# LIVEWIRE
-# MARY UI
-# CRUD
+# IMARAT Enterprice
+
+billing and customer management system
